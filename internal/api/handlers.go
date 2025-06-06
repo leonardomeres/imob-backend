@@ -54,6 +54,34 @@ func (h *Handler) HandleCustomers(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(map[string]string{"status": "created"})
 
+	case "PUT":
+		var c types.Customer
+		if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		_, err := h.db.Exec("UPDATE customers SET name = ?, phone = ?, address = ?, listing_link = ?, notes = ? WHERE id = ?",
+			c.Name, c.Phone, c.Address, c.ListingLink, c.Notes, c.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "updated"})
+	case "DELETE":
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "ID is required", http.StatusBadRequest)
+			return
+		}
+		_, err := h.db.Exec("DELETE FROM customers WHERE id = ?", id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+		json.NewEncoder(w).Encode(map[string]string{"status": "deleted"})
+
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}

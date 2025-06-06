@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/rs/cors"
 )
 
 func main() {
@@ -17,13 +16,14 @@ func main() {
 	}
 
 	handler := api.NewHandler(db)
-	if err != nil {
-		log.Fatalf("Failed to create API handler: %v", err)
-	}
+
 	http.HandleFunc("/api/customers", handler.HandleCustomers)
 
-	// CORS for frontend access
-	api := cors.Default().Handler(http.DefaultServeMux)
+	// Use your custom CORS middleware instead of cors.Default()
+	withCORS := api.WithCORS(http.DefaultServeMux)
+
 	log.Println("Backend listening on http://localhost:8080")
-	http.ListenAndServe(":8080", api)
+	if err := http.ListenAndServe(":8080", withCORS); err != nil {
+		log.Fatalf("Server failed: %v", err)
+	}
 }
