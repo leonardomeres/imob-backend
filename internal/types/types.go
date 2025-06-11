@@ -7,4 +7,5 @@ type Customer struct {
 	Address     string `json:"address"`
 	ListingLink string `json:"listingLink"`
 	Notes       string `json:"notes"`
+	Type        string `json:"type"` // "sale" or "rent"
 }

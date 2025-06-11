@@ -20,7 +20,7 @@ func (h *Handler) HandleCustomers(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		rows, err := h.db.Query("SELECT id, name, phone, address, listing_link, notes FROM customers")
+		rows, err := h.db.Query("SELECT id, name, phone, address, listing_link, notes, type FROM customers")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -30,7 +30,7 @@ func (h *Handler) HandleCustomers(w http.ResponseWriter, r *http.Request) {
 		var customers []types.Customer
 		for rows.Next() {
 			var c types.Customer
-			err = rows.Scan(&c.ID, &c.Name, &c.Phone, &c.Address, &c.ListingLink, &c.Notes)
+			err = rows.Scan(&c.ID, &c.Name, &c.Phone, &c.Address, &c.ListingLink, &c.Notes, &c.Type)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -45,8 +45,9 @@ func (h *Handler) HandleCustomers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		_, err := h.db.Exec("INSERT INTO customers (name, phone, address, listing_link, notes) VALUES (?, ?, ?, ?, ?)",
-			c.Name, c.Phone, c.Address, c.ListingLink, c.Notes)
+		_, err := h.db.Exec(`INSERT INTO customers (name, phone, address, listing_link, notes, type)
+	VALUES (?, ?, ?, ?, ?, ?)`, c.Name, c.Phone, c.Address, c.ListingLink, c.Notes, c.Type)
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -68,6 +69,7 @@ func (h *Handler) HandleCustomers(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "updated"})
+
 	case "DELETE":
 		id := r.URL.Query().Get("id")
 		if id == "" {

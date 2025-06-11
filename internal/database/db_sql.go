@@ -14,8 +14,10 @@ func OpenDbConnection() (*sql.DB, error) {
 		phone TEXT,
 		address TEXT,
 		listing_link TEXT,
-		notes TEXT
+		notes TEXT,
+		type TEXT
 	)`)
+
 	if err != nil {
 		return nil, err
 	}
